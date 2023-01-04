@@ -1,0 +1,22 @@
+.footer-toolbar {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    line-height: 20px;
+    position:absolute;
+    bottom: 0;
+    width:100%;
+    height:64px;
+    text-align: center;
+    justify-content: center;
+  }
+
+.footer-toolbar-text {
+    font-size: 16px;
+}
+
+.footer-toolbar a {
+    display: flex;
+    align-items: center;
+}
