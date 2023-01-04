@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import * as Leaflet from 'leaflet'; 
+import { HttpClient, HttpRequest } from '@angular/common/http';
 
 Leaflet.Icon.Default.mergeOptions({
   iconRetinaUrl: 'assets/marker-icon-2x.png',
@@ -12,7 +13,10 @@ Leaflet.Icon.Default.mergeOptions({
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
+
 export class AppComponent {
+  constructor(private http: HttpClient) { }
+
   title = 'segnaleticaSAT';
   map!: Leaflet.Map;
   markers: Leaflet.Marker[] = [];
@@ -22,7 +26,7 @@ export class AppComponent {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       })
     ],
-    zoom: 9, 
+    zoom: 10, 
     center: { lat: 46.06787, lng: 11.12108 }
   }
 
@@ -42,6 +46,21 @@ export class AppComponent {
     }
   }
 
+  loadBoundaries() {
+    const boundariesURL = "assets/TrentinoBoundaries.geojson"
+    this.http.get<any>(boundariesURL).subscribe(data => {
+      Leaflet.geoJSON(data).addTo(this.map);
+    }) 
+  }
+
+  loadPaths() {
+    const pathsURL = "assets/TrentinoPaths.geojson"
+    this.http.get<any>(pathsURL).subscribe(data => {
+      console.log(data);
+      Leaflet.geoJSON(data).addTo(this.map);
+    }) 
+  }
+
   generateMarker(data: any, index: number) {
     return Leaflet.marker(data.position, { draggable: data.draggable })
       .on('click', (event) => this.markerClicked(event, index))
@@ -50,7 +69,9 @@ export class AppComponent {
 
   onMapReady($event: Leaflet.Map) {
     this.map = $event;
-    this.initMarkers();
+    //this.initMarkers();
+    this.loadBoundaries();
+    this.loadPaths();
   }
 
   mapClicked($event: any) {

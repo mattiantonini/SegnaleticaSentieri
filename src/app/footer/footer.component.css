@@ -16,7 +16,18 @@
     font-size: 16px;
 }
 
-.footer-toolbar a {
+/* .footer-toolbar a {
     display: flex;
     align-items: center;
-}
+} */
+
+a,
+  a:visited,
+  a:hover {
+    color: #cccccc;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: #777777;
+  }

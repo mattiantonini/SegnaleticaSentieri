@@ -6,8 +6,6 @@
     margin-right: auto;
     margin-bottom: -100px;/*Allow for footer height*/
     margin-left: auto;
-    /* vertical-align:bottom; */
-    /* padding: 0 16px; */
     display: flex;
     flex: 1 1 auto;
   }
