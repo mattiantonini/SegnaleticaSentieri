@@ -47,9 +47,18 @@ export class AppComponent {
   }
 
   loadBoundaries() {
+    function polystyle(feature:any) {
+      return {
+          fillColor: 'blue',
+          weight: 3,
+          opacity: 1,
+          color: 'black',  //Outline color
+          fillOpacity: 0.05
+      };
+    }
     const boundariesURL = "assets/TrentinoBoundaries.geojson"
     this.http.get<any>(boundariesURL).subscribe(data => {
-      Leaflet.geoJSON(data).addTo(this.map);
+      Leaflet.geoJSON(data, {style: polystyle}).addTo(this.map);
     }) 
   }
 
@@ -57,7 +66,9 @@ export class AppComponent {
     const pathsURL = "assets/TrentinoPaths.geojson"
     this.http.get<any>(pathsURL).subscribe(data => {
       console.log(data);
-      Leaflet.geoJSON(data).addTo(this.map);
+      Leaflet.geoJSON(data, {
+        onEachFeature: this.onEachFeature_Path
+      }).addTo(this.map);
     }) 
   }
 
@@ -72,6 +83,20 @@ export class AppComponent {
     //this.initMarkers();
     this.loadBoundaries();
     this.loadPaths();
+  }
+
+  onEachFeature_Path(feature: any, layer: any) {
+    // function zoomToFeature(event: any, map:any) {
+    //   console.log(event);
+    //   map.fitBounds(event.target.getBounds());
+    // }
+    layer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
+    // layer.on('click', (event:any) => zoomToFeature(event, this.map));
+    // layer.on({
+		// 	// mouseover: highlightFeature,
+		// 	// mouseout: resetHighlight,
+		// 	click: this.zoomToFeature
+		// });
   }
 
   mapClicked($event: any) {
