@@ -64,11 +64,22 @@ export class AppComponent {
 
   loadPaths() {
     const pathsURL = "assets/TrentinoPaths.geojson"
+    var obj = this;
     this.http.get<any>(pathsURL).subscribe(data => {
       console.log(data);
-      Leaflet.geoJSON(data, {
-        onEachFeature: this.onEachFeature_Path
-      }).addTo(this.map);
+      var l = Leaflet.geoJSON(data, {
+        onEachFeature: function(feature, featureLayer) {
+          featureLayer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
+          featureLayer.on('click', (event) => obj.zoomToFeature(event, obj.map));
+        }
+      });
+      // l.on({
+      //   // 	// mouseover: highlightFeature,
+      //   // 	// mouseout: resetHighlight,
+      //     click: this.zoomToFeature
+      //   });
+      
+      l.addTo(this.map);
     }) 
   }
 
@@ -85,19 +96,22 @@ export class AppComponent {
     this.loadPaths();
   }
 
-  onEachFeature_Path(feature: any, layer: any) {
-    // function zoomToFeature(event: any, map:any) {
-    //   console.log(event);
-    //   map.fitBounds(event.target.getBounds());
-    // }
-    layer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
-    // layer.on('click', (event:any) => zoomToFeature(event, this.map));
-    // layer.on({
-		// 	// mouseover: highlightFeature,
-		// 	// mouseout: resetHighlight,
-		// 	click: this.zoomToFeature
-		// });
+  zoomToFeature(event: any, map: Leaflet.Map) {
+    console.log(event.target.getBounds());
+    map.fitBounds(event.target.getBounds());
   }
+
+  // onEachFeature_Path(feature: any, layer: Leaflet.Layer) {
+  //   console.log(this);
+
+  //   layer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
+  //   // layer.on('click', (event) => this.zoomToFeature(event, this.map));
+  //   layer.on({
+	// 	// 	// mouseover: highlightFeature,
+	// 	// 	// mouseout: resetHighlight,
+	// 		click: this.zoomToFeature
+	// 	});
+  // }
 
   mapClicked($event: any) {
     console.log($event.latlng.lat, $event.latlng.lng);
