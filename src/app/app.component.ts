@@ -62,15 +62,40 @@ export class AppComponent {
     }) 
   }
 
+  highlightFeature(event:any) {
+    var layer = event.target;
+
+    layer.setStyle({
+        weight: 5,
+        color: '#FF0000',
+        dashArray: '',
+        fillOpacity: 0.9
+    });
+
+    layer.bringToFront();
+  }
+
+  resetHighlight(event: any, layer_geojson:any) {
+    layer_geojson.resetStyle(event.target);
+  }
+
   loadPaths() {
     const pathsURL = "assets/TrentinoPaths.geojson"
     var obj = this;
     this.http.get<any>(pathsURL).subscribe(data => {
       console.log(data);
-      var l = Leaflet.geoJSON(data, {
+      var layer_geojson = Leaflet.geoJSON(data, {
+        style: {
+          weight: 3,
+          color: '#0000FF',
+          dashArray: '',
+          fillOpacity: 0.9
+        },
         onEachFeature: function(feature, featureLayer) {
           featureLayer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
           featureLayer.on('click', (event) => obj.zoomToFeature(event, obj.map));
+          featureLayer.on('mouseover', (event) => obj.highlightFeature(event));
+          featureLayer.on('mouseout', (event) => obj.resetHighlight(event, layer_geojson));
         }
       });
       // l.on({
@@ -79,7 +104,7 @@ export class AppComponent {
       //     click: this.zoomToFeature
       //   });
       
-      l.addTo(this.map);
+      layer_geojson.addTo(this.map);
     }) 
   }
 
