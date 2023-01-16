@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import * as Leaflet from 'leaflet'; 
 import { HttpClient, HttpRequest } from '@angular/common/http';
+import { NONE_TYPE } from '@angular/compiler';
 
 Leaflet.Icon.Default.mergeOptions({
   iconRetinaUrl: 'assets/marker-icon-2x.png',
@@ -17,6 +18,8 @@ export class MapPathsComponent {
   constructor(private http: HttpClient) { }
   map!: Leaflet.Map;
   markers: Leaflet.Marker[] = [];
+  lastSelectedPath= null;
+  layerPath!: Leaflet.GeoJSON;
   options = {
     layers: [
       Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -59,7 +62,7 @@ export class MapPathsComponent {
     }) 
   }
 
-  highlightFeature(event:any) {
+  onMouseOverPath(event:any) {
     var layer = event.target;
 
     layer.setStyle({
@@ -72,8 +75,10 @@ export class MapPathsComponent {
     layer.bringToFront();
   }
 
-  resetHighlight(event: any, layer_geojson:any) {
-    layer_geojson.resetStyle(event.target);
+  onMouseOutPath(event: any, layer_geojson:any) {
+    if(this.lastSelectedPath != event.target){
+      layer_geojson.resetStyle(event.target);
+    }
   }
 
   loadPaths() {
@@ -81,7 +86,7 @@ export class MapPathsComponent {
     var obj = this;
     this.http.get<any>(pathsURL).subscribe(data => {
       console.log(data);
-      var layer_geojson = Leaflet.geoJSON(data, {
+      obj.layerPath = Leaflet.geoJSON(data, {
         style: {
           weight: 3,
           color: '#0000FF',
@@ -90,13 +95,13 @@ export class MapPathsComponent {
         },
         onEachFeature: function(feature, featureLayer) {
           featureLayer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
-          featureLayer.on('click', (event) => obj.zoomToFeature(event, obj.map));
-          featureLayer.on('mouseover', (event) => obj.highlightFeature(event));
-          featureLayer.on('mouseout', (event) => obj.resetHighlight(event, layer_geojson));
+          featureLayer.on('click', (event) => obj.onClickPath(event, obj.map));
+          featureLayer.on('mouseover', (event) => obj.onMouseOverPath(event));
+          featureLayer.on('mouseout', (event) => obj.onMouseOutPath(event, obj.layerPath));
         }
       });
       
-      layer_geojson.addTo(this.map);
+      obj.layerPath.addTo(this.map);
     }) 
   }
 
@@ -113,20 +118,35 @@ export class MapPathsComponent {
     this.loadPaths();
   }
 
-  zoomToFeature(event: any, map: Leaflet.Map) {
+  onClickPath(event: any, map: Leaflet.Map) {
+    var layer = event.target;
     console.log(event.target.getBounds());
     map.fitBounds(event.target.getBounds());
+    layer.setStyle({
+      weight: 5,
+      color: '#FF0000',
+      dashArray: '',
+      fillOpacity: 0.9
+    });
+
+  layer.bringToFront();
+  // Handle the lastSelectedPath coloring
+  if(this.lastSelectedPath!=null){
+    this.layerPath.resetStyle(this.lastSelectedPath);
+  }
+  this.lastSelectedPath = layer;
+  console.log(this.lastSelectedPath);
   }
 
   // onEachFeature_Path(feature: any, layer: Leaflet.Layer) {
   //   console.log(this);
 
   //   layer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
-  //   // layer.on('click', (event) => this.zoomToFeature(event, this.map));
+  //   // layer.on('click', (event) => this.onClickPath(event, this.map));
   //   layer.on({
-	// 	// 	// mouseover: highlightFeature,
-	// 	// 	// mouseout: resetHighlight,
-	// 		click: this.zoomToFeature
+	// 	// 	// mouseover: onMouseOverPath,
+	// 	// 	// mouseout: onMouseOutPath,
+	// 		click: this.onClickPath
 	// 	});
   // }
 
