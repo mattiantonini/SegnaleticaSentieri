@@ -14,12 +14,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { HeaderComponent } from './header/header.component';
 import { FooterComponent } from './footer/footer.component';
+import { MapPathsComponent } from './map-paths/map-paths.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     HeaderComponent,
-    FooterComponent
+    FooterComponent,
+    MapPathsComponent
   ],
   imports: [
     BrowserModule,

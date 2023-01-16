@@ -1,14 +1,4 @@
-.map-container {
-    min-height: calc(100% - 125px);
-    height: auto !important; /*Cause footer to stick to bottom in IE 6*/
-    height: 100%; 
-    margin-top: 0;
-    margin-right: auto;
-    margin-bottom: -100px;/*Allow for footer height*/
-    margin-left: auto;
-    display: flex;
-    flex: 1 1 auto;
-  }
+
   .content {
     display: flex;
     margin: 82px auto 32px;
