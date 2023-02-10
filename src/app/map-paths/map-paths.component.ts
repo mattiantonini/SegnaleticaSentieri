@@ -67,7 +67,7 @@ export class MapPathsComponent {
 
     layer.setStyle({
         weight: 5,
-        color: '#FF0000',
+        color: '#FFFF00',
         dashArray: '',
         fillOpacity: 0.9
     });
@@ -89,7 +89,7 @@ export class MapPathsComponent {
       obj.layerPath = Leaflet.geoJSON(data, {
         style: {
           weight: 3,
-          color: '#0000FF',
+          color: '#FF0000',
           dashArray: '',
           fillOpacity: 0.9
         },
@@ -124,7 +124,7 @@ export class MapPathsComponent {
     map.fitBounds(event.target.getBounds());
     layer.setStyle({
       weight: 5,
-      color: '#FF0000',
+      color: '#FFFF00',
       dashArray: '',
       fillOpacity: 0.9
     });
