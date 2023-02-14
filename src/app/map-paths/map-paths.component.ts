@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import * as Leaflet from 'leaflet'; 
+import 'leaflet-textpath';
 import { HttpClient, HttpRequest } from '@angular/common/http';
 import { NONE_TYPE } from '@angular/compiler';
 
@@ -19,6 +20,7 @@ export class MapPathsComponent {
   map!: Leaflet.Map;
   markers: Leaflet.Marker[] = [];
   lastSelectedPath= null;
+  dataPath = [];
   layerPath!: Leaflet.GeoJSON;
   options = {
     layers: [
@@ -46,7 +48,17 @@ export class MapPathsComponent {
     }
   }
 
-  loadBoundaries() {
+  initLoadPath() {
+    const pathsURL = "assets/TrentinoPaths.geojson"
+    var obj = this;
+    this.http.get<any>(pathsURL).subscribe(data => {
+      console.log(data);
+      obj.dataPath = data;
+      obj.loadPaths();
+    });
+  }
+
+  initLoadBoundaries() {
     function polystyle(feature:any) {
       return {
           fillColor: 'blue',
@@ -69,7 +81,8 @@ export class MapPathsComponent {
         weight: 5,
         color: '#FFFF00',
         dashArray: '',
-        fillOpacity: 0.9
+        fillOpacity: 0.9,
+        opacity:1
     });
 
     layer.bringToFront();
@@ -81,28 +94,68 @@ export class MapPathsComponent {
     }
   }
 
+  loadPathStyle (feature:any, obj:any) {
+    var s = {
+      weight: 4,
+      color: '#FF0000',
+      dashArray: '0',
+      fillOpacity: 0.9,
+      opacity: 1
+    };
+    
+    if(obj.map.getZoom() >10){
+      // s["dashArray"] = '2, 15';
+      console.log(feature);
+      if (feature["properties"]["difficolta"] === 'T') {
+        s["dashArray"] = '22';
+      }
+      else if (feature["properties"]["difficolta"] === 'E') {
+        s["dashArray"] = '7, 8';
+      }
+      else if (feature["properties"]["difficolta"] === 'EE') {
+        s["dashArray"] = '1, 8';
+      }
+      else if (feature["properties"]["difficolta"].startsWith('EEA')) {
+        s["dashArray"] = '0';
+        s["opacity"] = 0.00;
+      }      
+    }
+
+    return s;
+  }
+
   loadPaths() {
-    const pathsURL = "assets/TrentinoPaths.geojson"
     var obj = this;
-    this.http.get<any>(pathsURL).subscribe(data => {
-      console.log(data);
-      obj.layerPath = Leaflet.geoJSON(data, {
-        style: {
-          weight: 3,
-          color: '#FF0000',
-          dashArray: '',
-          fillOpacity: 0.9
-        },
-        onEachFeature: function(feature, featureLayer) {
-          featureLayer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
-          featureLayer.on('click', (event) => obj.onClickPath(event, obj.map));
-          featureLayer.on('mouseover', (event) => obj.onMouseOverPath(event));
-          featureLayer.on('mouseout', (event) => obj.onMouseOutPath(event, obj.layerPath));
+    obj.layerPath = Leaflet.geoJSON(obj.dataPath, {
+      style: (feature) => obj.loadPathStyle(feature, obj),
+      onEachFeature: function(feature, featureLayer:Leaflet.Polyline) {
+        featureLayer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
+        featureLayer.on('click', (event) => obj.onClickPath(event, obj.map));
+        featureLayer.on('mouseover', (event) => obj.onMouseOverPath(event));
+        featureLayer.on('mouseout', (event) => obj.onMouseOutPath(event, obj.layerPath));
+
+        // featureLayer.setStyle(obj.loadPathStyle(feature, obj));
+        if (feature["properties"]["difficolta"].startsWith('EEA')) {
+          if (obj.map.getZoom() >10){
+            featureLayer.setText("+", {
+              repeat: true,
+              offset: 4,
+              attributes: {
+                "font-weight": "bold",
+                "font-size": "20",
+                "fill": "#ff0000"
+              }
+            });
+          }
+          else {
+            featureLayer.setText(null);
+          }
         }
-      });
-      
-      obj.layerPath.addTo(this.map);
-    }) 
+
+      }
+    });
+    
+    obj.layerPath.addTo(obj.map);
   }
 
   generateMarker(data: any, index: number) {
@@ -112,10 +165,16 @@ export class MapPathsComponent {
   }
 
   onMapReady($event: Leaflet.Map) {
+    var obj = this;
     this.map = $event;
     //this.initMarkers();
-    this.loadBoundaries();
-    this.loadPaths();
+    this.initLoadBoundaries();
+    this.initLoadPath();
+
+    obj.map.on("zoomend", function(){
+      obj.layerPath.removeFrom(obj.map);
+      obj.loadPaths();
+    });
   }
 
   onClickPath(event: any, map: Leaflet.Map) {
