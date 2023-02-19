@@ -91,6 +91,9 @@ export class MapPathsComponent {
   onMouseOutPath(event: any, layer_geojson:any) {
     if(this.lastSelectedPath != event.target){
       layer_geojson.resetStyle(event.target);
+      event.target.options["lineCap"]="square";
+      layer_geojson.options["lineCap"]="square";
+
     }
   }
 
@@ -98,13 +101,13 @@ export class MapPathsComponent {
     var s = {
       weight: 4,
       color: '#FF0000',
-      dashArray: '0',
-      fillOpacity: 0.9,
-      opacity: 1
+      dashArray: '',
+      fillOpacity: 1.00,
+      opacity: 1.00
     };
     
     if(obj.map.getZoom() >10){
-      // s["dashArray"] = '2, 15';
+      //If the path has difficulty <EEA, the stile is set here
       console.log(feature);
       if (feature["properties"]["difficolta"] === 'T') {
         s["dashArray"] = '22';
@@ -113,7 +116,7 @@ export class MapPathsComponent {
         s["dashArray"] = '7, 8';
       }
       else if (feature["properties"]["difficolta"] === 'EE') {
-        s["dashArray"] = '1, 8';
+        s["dashArray"] = '1, 9';
       }
       else if (feature["properties"]["difficolta"].startsWith('EEA')) {
         s["dashArray"] = '0';
@@ -134,7 +137,9 @@ export class MapPathsComponent {
         featureLayer.on('mouseover', (event) => obj.onMouseOverPath(event));
         featureLayer.on('mouseout', (event) => obj.onMouseOutPath(event, obj.layerPath));
 
-        // featureLayer.setStyle(obj.loadPathStyle(feature, obj));
+        featureLayer.options["lineCap"]="square";
+
+        //If the path has difficulty >=EEA, the stile is set here
         if (feature["properties"]["difficolta"].startsWith('EEA')) {
           if (obj.map.getZoom() >10){
             featureLayer.setText("+", {
@@ -188,13 +193,13 @@ export class MapPathsComponent {
       fillOpacity: 0.9
     });
 
-  layer.bringToFront();
-  // Handle the lastSelectedPath coloring
-  if(this.lastSelectedPath!=null){
-    this.layerPath.resetStyle(this.lastSelectedPath);
-  }
-  this.lastSelectedPath = layer;
-  console.log(this.lastSelectedPath);
+    layer.bringToFront();
+    // Handle the lastSelectedPath coloring
+    if(this.lastSelectedPath!=null){
+      this.layerPath.resetStyle(this.lastSelectedPath);
+    }
+    this.lastSelectedPath = layer;
+    console.log(this.lastSelectedPath);
   }
 
   // onEachFeature_Path(feature: any, layer: Leaflet.Layer) {
