@@ -110,7 +110,7 @@ export class MapPathsComponent {
       //If the path has difficulty <EEA, the stile is set here
       console.log(feature);
       if (feature["properties"]["difficolta"] === 'T') {
-        s["dashArray"] = '22';
+        s["dashArray"] = '';
       }
       else if (feature["properties"]["difficolta"] === 'E') {
         s["dashArray"] = '7, 8';
