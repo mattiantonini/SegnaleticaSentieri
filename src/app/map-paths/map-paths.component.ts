@@ -4,6 +4,8 @@ import 'leaflet-textpath';
 import { HttpClient, HttpRequest } from '@angular/common/http';
 import { NONE_TYPE } from '@angular/compiler';
 
+import { InfoBoxControl } from './map-infobox-control';
+
 Leaflet.Icon.Default.mergeOptions({
   iconRetinaUrl: 'assets/marker-icon-2x.png',
   iconUrl: 'assets/marker-icon.png',
@@ -19,6 +21,7 @@ export class MapPathsComponent {
   constructor(private http: HttpClient) { }
   map!: Leaflet.Map;
   markers: Leaflet.Marker[] = [];
+  infoBox!: InfoBoxControl;
   lastSelectedPath= null;
   dataPath = [];
   layerPath!: Leaflet.GeoJSON;
@@ -74,7 +77,13 @@ export class MapPathsComponent {
     }) 
   }
 
-  onMouseOverPath(event:any) {
+  initInfoBox() {
+    this.infoBox = new InfoBoxControl({position: 'topright'});
+    this.infoBox.addTo(this.map);
+    this.infoBox.updateInfoBox(null);
+  }
+
+  onMouseOverPath(event:any, mapPath:MapPathsComponent, feature:any) {
     var layer = event.target;
 
     layer.setStyle({
@@ -84,17 +93,17 @@ export class MapPathsComponent {
         fillOpacity: 0.9,
         opacity:1
     });
+    mapPath.infoBox.updateInfoBox(feature["properties"]);
 
     layer.bringToFront();
   }
 
-  onMouseOutPath(event: any, layer_geojson:any) {
+  onMouseOutPath(event: any, mapPath:MapPathsComponent) {
     if(this.lastSelectedPath != event.target){
-      layer_geojson.resetStyle(event.target);
+      mapPath.layerPath.resetStyle(event.target);
       event.target.options["lineCap"]="square";
-      layer_geojson.options["lineCap"]="square";
-
     }
+    mapPath.infoBox.updateInfoBox(null);
   }
 
   loadPathStyle (feature:any, obj:any) {
@@ -133,9 +142,9 @@ export class MapPathsComponent {
       style: (feature) => obj.loadPathStyle(feature, obj),
       onEachFeature: function(feature, featureLayer:Leaflet.Polyline) {
         featureLayer.bindPopup('<pre>'+JSON.stringify(feature.properties,null,' ').replace(/[\{\}"]/g,'')+'</pre>');
-        featureLayer.on('click', (event) => obj.onClickPath(event, obj.map));
-        featureLayer.on('mouseover', (event) => obj.onMouseOverPath(event));
-        featureLayer.on('mouseout', (event) => obj.onMouseOutPath(event, obj.layerPath));
+        featureLayer.on('click', (event) => obj.onClickPath(event, obj));
+        featureLayer.on('mouseover', (event) => obj.onMouseOverPath(event, obj, feature));
+        featureLayer.on('mouseout', (event) => obj.onMouseOutPath(event, obj));
 
         featureLayer.options["lineCap"]="square";
 
@@ -175,17 +184,17 @@ export class MapPathsComponent {
     //this.initMarkers();
     this.initLoadBoundaries();
     this.initLoadPath();
-
+    this.initInfoBox();
     obj.map.on("zoomend", function(){
       obj.layerPath.removeFrom(obj.map);
       obj.loadPaths();
     });
   }
 
-  onClickPath(event: any, map: Leaflet.Map) {
+  onClickPath(event: any, mapPath: MapPathsComponent) {
     var layer = event.target;
     console.log(event.target.getBounds());
-    map.fitBounds(event.target.getBounds());
+    mapPath.map.fitBounds(event.target.getBounds());
     layer.setStyle({
       weight: 5,
       color: '#FFFF00',
